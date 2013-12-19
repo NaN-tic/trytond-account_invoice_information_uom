@@ -18,19 +18,35 @@ _ROUND = Decimal('.0001')
 class Template:
     __name__ = "product.template"
 
-    use_info_uom = fields.Boolean('Use Information UOM')
-    info_uom = fields.Many2One('product.uom', 'Information UOM')
+    use_info_unit = fields.Boolean('Use Information UOM')
+    info_unit = fields.Many2One('product.uom', 'Information UOM')
     info_list_price = fields.Function(fields.Numeric('Information List Price',
             digits=(16, 8), on_change=['list_price', 'info_list_price',
-                'info_ratio', 'use_info_uom'],
-            on_change_with=['info_ratio', 'list_price', 'use_info_uom']),
+                'info_ratio', 'use_info_unit'],
+            on_change_with=['info_ratio', 'list_price', 'use_info_unit']),
         'on_change_with_info_list_price', setter='set_info_list_price')
     info_cost_price = fields.Function(fields.Numeric('Information Cost Price',
             digits=(16, 8), on_change=['cost_price', 'info_cost_price',
-                'info_ratio', 'use_info_uom'],
-            on_change_with=['info_ratio', 'cost_price', 'use_info_uom']),
+                'info_ratio', 'use_info_unit'],
+            on_change_with=['info_ratio', 'cost_price', 'use_info_unit']),
         'on_change_with_info_cost_price', setter='set_info_cost_price')
     info_ratio = fields.Numeric('Information Ratio', digits=(16, 4))
+
+
+    def calc_info_quantity(self, qty):
+        if self.use_info_unit:
+            return _ZERO
+
+        Uom = Pool().get('product.uom')
+        info_qty = self.info_ratio * qty
+        return Uom.compute_qty([self], self.info_unit, info_qty)
+
+    def calc_quantity(self, info_qty, uom):
+        if self.use_info_unit:
+            return _ZERO
+        Uom = Pool().get('product.uom')
+        qty = info_qty / self.info_ratio
+        return Uom.compute_qty([self], uom, qty)
 
     def get_info_list_price(self):
         if self.use_info_uom:
@@ -42,19 +58,14 @@ class Template:
             return (self.info_ratio * self.cost_price).quantize(_ROUND)
         return _ZERO
 
-    def get_list_price(self, info_list_price):
+    def get_unit_price(self, info_price):
         if self.use_info_uom:
-            return (info_list_price / self.info_ratio).quantize(_ROUND)
-        return _ZERO
-
-    def get_cost_price(self, info_cost_price):
-        if self.use_info_uom:
-            return (info_cost_price / self.info_ratio).quantize(_ROUND)
+            return (info_price / self.info_ratio).quantize(_ROUND)
         return _ZERO
 
     def on_change_info_list_price(self, name=None):
         return {
-            'list_price': self.get_list_price(self.info_list_price)
+            'list_price': self.get_unit_price(self.info_list_price)
             }
 
     def on_change_with_info_list_price(self, name=None):
@@ -65,7 +76,7 @@ class Template:
 
     def on_change_info_cost_price(self, name=None):
         return {
-            'cost_price': self.get_cost_price(self.info_cost_price)
+            'cost_price': self.get_unit_price(self.info_cost_price)
             }
 
     @classmethod
