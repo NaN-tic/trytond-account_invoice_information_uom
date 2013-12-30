@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<data>
+    <xpath expr="/tree/field[@name='amount']" position="after">        
+        <field name="info_unit"/>
+        <field name="info_quantity"/>
+        <field name="info_unit_price"/>
+        <field name="info_amount"/>
+    </xpath>
+</data>

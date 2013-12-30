@@ -4,12 +4,13 @@ this repository contains the full copyright notices and license terms. -->
 <data>
     <xpath expr="/form/notebook/page[@id='general']" position="after">
         <page id="information_uom" string="Information UOM">
-            <label name="use_info_uom"/>
-            <field name="use_info_uom"/>
+            <label name="use_info_unit"/>
+            <field name="use_info_unit"/>
+            <newline/>
             <label name="info_ratio"/>
             <field name="info_ratio"/>
-            <label name="info_uom"/>
-            <field name="info_uom"/>
+            <label name="info_unit"/>
+            <field name="info_unit"/>
             <label name="info_list_price"/>
             <field name="info_list_price"/>
             <label name="info_cost_price"/>
