@@ -112,31 +112,6 @@ Create chart of accounts::
     >>> create_chart.form.account_payable = payable
     >>> create_chart.execute('create_properties')
 
-Create tax::
-
-    >>> TaxCode = Model.get('account.tax.code')
-    >>> Tax = Model.get('account.tax')
-    >>> tax = Tax()
-    >>> tax.name = 'Tax'
-    >>> tax.description = 'Tax'
-    >>> tax.type = 'percentage'
-    >>> tax.rate = Decimal('.10')
-    >>> tax.invoice_account = account_tax
-    >>> tax.credit_note_account = account_tax
-    >>> invoice_base_code = TaxCode(name='invoice base')
-    >>> invoice_base_code.save()
-    >>> tax.invoice_base_code = invoice_base_code
-    >>> invoice_tax_code = TaxCode(name='invoice tax')
-    >>> invoice_tax_code.save()
-    >>> tax.invoice_tax_code = invoice_tax_code
-    >>> credit_note_base_code = TaxCode(name='credit note base')
-    >>> credit_note_base_code.save()
-    >>> tax.credit_note_base_code = credit_note_base_code
-    >>> credit_note_tax_code = TaxCode(name='credit note tax')
-    >>> credit_note_tax_code.save()
-    >>> tax.credit_note_tax_code = credit_note_tax_code
-    >>> tax.save()
-
 Create party::
 
     >>> Party = Model.get('party.party')
@@ -162,13 +137,11 @@ Create product::
     >>> template.cost_price = Decimal('20')
     >>> template.account_expense = expense
     >>> template.account_revenue = revenue
-    >>> template.supplier_taxes.append(tax)    
+    >>> template.save()
     >>> template.info_cost_price
-    Decimal('40.0000')
+    Decimal('10.0000')
     >>> template.info_list_price
-    Decimal('80.0000')    
-    >>> template.info_cost_price
-    Decimal('40.0000')
+    Decimal('20.0000')
     >>> product.template = template
     >>> product.save()
 
@@ -186,6 +159,43 @@ Create invoice::
     >>> Invoice = Model.get('account.invoice')
     >>> InvoiceLine = Model.get('account.invoice.line')
     >>> invoice = Invoice()
+    >>> invoice.type = 'out_invoice'
+    >>> invoice.party = party
+    >>> invoice.payment_term = payment_term
+    >>> invoice.invoice_date = today
+    >>> line = InvoiceLine()
+    >>> invoice.lines.append(line)
+    >>> line.product = product
+    >>> line.show_info_unit
+    True
+    >>> line.unit_price
+    Decimal('40')
+    >>> line.info_unit_price
+    Decimal('20.0000')
+    >>> line.unit == unit
+    True
+    >>> line.info_unit == unit2
+    True
+    >>> line.quantity = 5
+    >>> line.info_quantity == 10
+    True
+    >>> line.amount == Decimal('200.0000')
+    True
+    >>> line.amount == line.info_amount
+    True
+    >>> line.unit_price = Decimal('50')
+    >>> line.info_unit_price
+    Decimal('25.0000')
+    >>> line.amount == Decimal('250.00')
+    True
+    >>> line.amount == line.info_amount
+    True
+
+Credit supplier invoice::
+
+    >>> Invoice = Model.get('account.invoice')
+    >>> InvoiceLine = Model.get('account.invoice.line')
+    >>> invoice = Invoice()
     >>> invoice.type = 'in_invoice'
     >>> invoice.party = party
     >>> invoice.payment_term = payment_term
@@ -193,66 +203,27 @@ Create invoice::
     >>> line = InvoiceLine()
     >>> invoice.lines.append(line)
     >>> line.product = product
+    >>> line.show_info_unit
+    True
+    >>> line.unit_price
+    Decimal('20')
+    >>> line.info_unit_price
+    Decimal('10.0000')
+    >>> line.unit == unit
+    True
+    >>> line.info_unit == unit2
+    True
     >>> line.quantity = 5
-    >>> line = InvoiceLine()
-    >>> invoice.lines.append(line)
-    >>> line.account = expense
-    >>> line.description = 'Test'
-    >>> line.quantity = 1
-    >>> line.unit_price = Decimal(10)
-    >>> invoice.untaxed_amount == Decimal(110)
+    >>> line.info_quantity == 10
     True
-    >>> invoice.tax_amount == Decimal(10)
+    >>> line.amount == Decimal('100.00')
     True
-    >>> invoice.total_amount == Decimal(120)
+    >>> line.amount == line.info_amount
     True
-    >>> invoice.save()
-    >>> Invoice.post([invoice.id], config.context)
-    >>> invoice.reload()
-    >>> invoice.state
-    u'posted'
-    >>> invoice.untaxed_amount == Decimal(110)
+    >>> line.unit_price = Decimal('50')
+    >>> line.info_unit_price
+    Decimal('25.0000')
+    >>> line.amount == Decimal('250.00')
     True
-    >>> invoice.tax_amount == Decimal(10)
-    True
-    >>> invoice.total_amount == Decimal(120)
-    True
-    >>> payable.reload()
-    >>> (payable.debit, payable.credit) == \
-    ... (Decimal(0), Decimal(120))
-    True
-    >>> expense.reload()
-    >>> (expense.debit, expense.credit) == \
-    ... (Decimal(110), Decimal(0))
-    True
-    >>> account_tax.reload()
-    >>> (account_tax.debit, account_tax.credit) == \
-    ... (Decimal(10), Decimal(0))
-    True
-    >>> invoice_base_code.reload()
-    >>> invoice_base_code.sum == Decimal(100)
-    True
-    >>> invoice_tax_code.reload()
-    >>> invoice_tax_code.sum == Decimal(10)
-    True
-    >>> credit_note_base_code.reload()
-    >>> credit_note_base_code.sum == Decimal(0)
-    True
-    >>> credit_note_tax_code.reload()
-    >>> credit_note_tax_code.sum == Decimal(0)
-    True
-
-Credit invoice::
-
-    >>> credit = Wizard('account.invoice.credit', [invoice])
-    >>> credit.form.with_refund = False
-    >>> credit.execute('credit')
-    >>> credit_note, = Invoice.find([('type', '=', 'in_credit_note')])
-    >>> credit_note.state
-    u'draft'
-    >>> credit_note.untaxed_amount == invoice.untaxed_amount
-    True
-    >>> credit_note.tax_amount == invoice.tax_amount
-    True
-    >>> credit_note.total_amount == invoice.total_amount
+    >>> line.amount == line.info_amount
     True

@@ -12,4 +12,7 @@ this repository contains the full copyright notices and license terms. -->
         <label name="info_amount"/>
         <field name="info_amount"/>
     </xpath>
+    <xpath expr="/form/notebook" position="before">
+        <field name="show_info_unit" invisible="1" />
+    </xpath>
 </data>
