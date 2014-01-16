@@ -6,7 +6,7 @@ from trytond.pyson import Eval, Bool
 from trytond.pool import PoolMeta
 from decimal import Decimal
 
-__all__ = ['InvoiceLine']
+__all__ = ['InformationUomMixin', 'InvoiceLine']
 __metaclass__ = PoolMeta
 
 _ZERO = Decimal('0.0')
@@ -18,8 +18,7 @@ STATES = {
 DEPENDS = ['show_info_unit']
 
 
-class InvoiceLine:
-    __name__ = 'account.invoice.line'
+class InformationUomMixin:
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM',
             on_change_with=['product']), 'on_change_with_show_info_unit')
     info_unit = fields.Function(fields.Many2One('product.uom',
@@ -53,32 +52,39 @@ class InvoiceLine:
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
             },
-        on_change=['info_unit_price', 'invoice_type', 'product',
-            'info_quantity', 'invoice_type', 'type'],
-        on_change_with=['unit_price', 'type', 'invoice_type',
-            'info_unit_price', 'info_quantity', 'product', 'unit_price'],
-        depends=['type', 'invoice_type', 'product'])
+        on_change=['info_unit_price', 'product', 'info_quantity', 'type'],
+        on_change_with=['unit_price', 'type', 'info_unit_price',
+            'info_quantity', 'product', 'unit_price'],
+        depends=['type', 'product'])
 
     info_amount = fields.Function(fields.Numeric('Information Amount',
-            digits=(16, Eval('_parent_invoice', {}).get('currency_digits',
-                    Eval('currency_digits', 2))),
+            digits=(16, Eval('currency_digits', 2)),
             states={
                 'invisible': (~Bool(Eval('show_info_unit')) |
                     ~Eval('type').in_(['line', 'subtotal'])),
                 },
-            on_change_with=['type', 'info_unit_price',
-                'info_quantity', '_parent_invoice.currency', 'currency'],
-            depends=['type', 'currency_digits', 'show_info_unit']),
+            on_change_with=['info_unit_price', 'info_quantity'],
+            depends=['currency_digits']),
         'get_amount')
+
+    currency_digits = fields.Function(fields.Integer('Currency Digits',
+            on_change_with=[]), 'on_change_with_currency_digits')
+
+    def on_change_with_currency_digits(self, name=None):
+        return 2
 
     @classmethod
     def __setup__(cls):
-        super(InvoiceLine, cls).__setup__()
+        super(InformationUomMixin, cls).__setup__()
         for value in cls.amount.on_change_with:
             if value not in cls.info_quantity.on_change:
                 cls.info_quantity.on_change.append(value)
             if value not in cls.info_unit_price.on_change:
                 cls.info_unit_price.on_change.append(value)
+            if value not in cls.info_amount.on_change_with:
+                cls.info_amount.on_change_with.append(value)
+                if not 'currency' in value:
+                    cls.info_amount.depends.append(value)
         if not cls.quantity.on_change:
             cls.quantity.on_change = []
         if not cls.unit_price.on_change:
@@ -172,3 +178,28 @@ class InvoiceLine:
             'info_unit_price': self.info_unit_price,
             'info_amount': self.on_change_with_info_amount()
             }
+
+
+class InvoiceLine(InformationUomMixin):
+    __name__ = 'account.invoice.line'
+
+    @classmethod
+    def __setup__(cls):
+        super(InvoiceLine, cls).__setup__()
+        for value in cls.amount.on_change_with:
+            if value not in cls.info_quantity.on_change:
+                cls.info_quantity.on_change.append(value)
+            if value not in cls.info_unit_price.on_change:
+                cls.info_unit_price.on_change.append(value)
+        if not 'invoice' in cls.currency_digits.on_change_with:
+            cls.currency_digits.on_change_with.append('invoice')
+        for value in ('invoice_type',):
+            if value not in cls.info_unit_price.on_change:
+                cls.info_unit_price.on_change.append(value)
+                cls.info_unit_price.on_change_with.append(value)
+                cls.info_unit_price.depends.append(value)
+
+    def on_change_with_currency_digits(self, name=None):
+        if self.invoice:
+            return self.invoice.currency_digits
+        return 2

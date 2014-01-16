@@ -191,7 +191,7 @@ Create invoice::
     >>> line.amount == line.info_amount
     True
 
-Credit supplier invoice::
+Supplier invoice::
 
     >>> Invoice = Model.get('account.invoice')
     >>> InvoiceLine = Model.get('account.invoice.line')
