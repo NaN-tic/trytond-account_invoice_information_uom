@@ -39,7 +39,7 @@ class InformationUomMixin:
                 (Eval('type') == 'line')),
             },
         on_change_with=['quantity', 'product', 'info_quantity',
-            'info_unit_price', 'product'],
+            'info_unit_price', 'product', 'unit', 'info_unit'],
         on_change=['quantity', 'unit_quantity', 'unit',
             'info_quantity', 'info_unit_price', 'product'],
         depends=['type', 'info_unit_digits', 'product', 'unit', 'unit_digits',
@@ -54,7 +54,7 @@ class InformationUomMixin:
             },
         on_change=['info_unit_price', 'product', 'info_quantity', 'type'],
         on_change_with=['unit_price', 'type', 'info_unit_price',
-            'info_quantity', 'product', 'unit_price'],
+            'info_quantity', 'product', 'unit_price', 'unit'],
         depends=['type', 'product'])
 
     info_amount = fields.Function(fields.Numeric('Information Amount',
@@ -65,7 +65,7 @@ class InformationUomMixin:
                 },
             on_change_with=['info_unit_price', 'info_quantity'],
             depends=['currency_digits']),
-        'get_amount')
+        'on_change_with_info_amount')
 
     currency_digits = fields.Function(fields.Integer('Currency Digits',
             on_change_with=[]), 'on_change_with_currency_digits')
@@ -89,10 +89,14 @@ class InformationUomMixin:
             cls.quantity.on_change = []
         if not cls.unit_price.on_change:
             cls.unit_price.on_change = []
+        if not cls.unit.on_change:
+            cls.unit.on_change = []
         for value in cls.info_amount.on_change_with + ['product', 'quantity',
-                'unit_price']:
+                'unit_price', 'unit']:
             if value not in cls.quantity.on_change:
                 cls.quantity.on_change.append(value)
+            if value not in cls.unit.on_change:
+                cls.unit.on_change.append(value)
             if value not in cls.unit_price.on_change:
                 cls.unit_price.on_change.append(value)
 
@@ -119,13 +123,13 @@ class InformationUomMixin:
     def on_change_with_info_quantity(self, name=None):
         if not self.product or not self.quantity:
             return
-        return self.product.calc_info_quantity(self.quantity)
+        return Decimal(str(self.product.calc_info_quantity(self.quantity,
+                    self.unit)))
 
     def on_change_info_quantity(self, name=None):
         if not self.product:
             return {}
-        qty = self.product.calc_quantity(
-                self.info_quantity, self.unit)
+        qty = self.product.calc_quantity(self.info_quantity, self.unit)
         self.quantity = float(qty)
         return {
             'quantity': float(qty),
@@ -136,44 +140,61 @@ class InformationUomMixin:
         if not self.product:
             return
         if not self.unit_price:
-            return
+            return self.unit_price
         if self.type in ('out_invoice', 'out_refund'):
-            return self.product.get_info_list_price(self.unit_price)
+            return self.product.get_info_list_price(self.unit_price, self.unit)
         else:
-            return self.product.get_info_cost_price(self.unit_price)
+            return self.product.get_info_cost_price(self.unit_price,
+                unit=self.unit)
 
     def on_change_info_unit_price(self, name=None):
         if not self.product:
             return {}
-        if not self.info_unit_price:
-            return {}
-        self.unit_price = self.product.get_unit_price(self.info_unit_price)
+        if self.info_unit_price:
+            self.unit_price = self.product.get_unit_price(self.info_unit_price,
+                unit=self.unit)
+        else:
+            self.unit_price = self.info_unit_price
         return {
             'unit_price': self.unit_price,
             'amount': self.on_change_with_amount()
             }
 
     def on_change_with_info_amount(self, name=None):
+        info_amount = Decimal('0.0')
         if self.info_unit_price and self.info_quantity:
-            return self.info_unit_price * Decimal(str(self.info_quantity))
+            info_amount = (self.info_unit_price *
+                Decimal(str(self.info_quantity)))
+        return info_amount
 
     def on_change_quantity(self, name=None):
         if not self.product:
             return {}
-        qty = self.product.calc_info_quantity(self.quantity)
+        qty = self.product.calc_info_quantity(self.quantity, self.unit)
         self.info_quantity = float(qty)
         return {
-            'info_quantity': float(qty),
+            'info_quantity': self.info_quantity,
             'info_amount':  self.on_change_with_info_amount(),
+            }
+
+    def on_change_unit(self, name=None):
+        info_unit_price = self.on_change_with_info_unit_price()
+        info_quantity = self.on_change_with_info_quantity()
+
+        return {
+            'info_unit_price': info_unit_price,
+            'info_quantity': info_quantity,
+            'info_quant': self.on_change_with_info_unit_price(),
             }
 
     def on_change_unit_price(self, name=None):
         if not self.product:
             return {}
-        if not self.unit_price:
-            return {}
-        self.info_unit_price = self.product.get_info_unit_price(
-            self.unit_price)
+        if self.unit_price:
+            self.info_unit_price = self.product.get_info_unit_price(
+                self.unit_price)
+        else:
+            self.info_unit_price = self.unit_price
         return {
             'info_unit_price': self.info_unit_price,
             'info_amount': self.on_change_with_info_amount()

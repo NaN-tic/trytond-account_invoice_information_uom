@@ -138,10 +138,10 @@ Create product::
     >>> template.account_expense = expense
     >>> template.account_revenue = revenue
     >>> template.save()
-    >>> template.info_cost_price
-    Decimal('10.0000')
-    >>> template.info_list_price
-    Decimal('20.0000')
+    >>> template.info_cost_price == Decimal('10.0000')
+    True
+    >>> template.info_list_price == Decimal('20.0000')
+    True
     >>> product.template = template
     >>> product.save()
 
@@ -168,10 +168,10 @@ Create invoice::
     >>> line.product = product
     >>> line.show_info_unit
     True
-    >>> line.unit_price
-    Decimal('40')
-    >>> line.info_unit_price
-    Decimal('20.0000')
+    >>> line.unit_price == Decimal('40')
+    True
+    >>> line.info_unit_price == Decimal('20.0000')
+    True
     >>> line.unit == unit
     True
     >>> line.info_unit == unit2
@@ -184,8 +184,8 @@ Create invoice::
     >>> line.amount == line.info_amount
     True
     >>> line.unit_price = Decimal('50')
-    >>> line.info_unit_price
-    Decimal('25.0000')
+    >>> line.info_unit_price == Decimal('25.0000')
+    True
     >>> line.amount == Decimal('250.00')
     True
     >>> line.amount == line.info_amount
@@ -205,10 +205,10 @@ Supplier invoice::
     >>> line.product = product
     >>> line.show_info_unit
     True
-    >>> line.unit_price
-    Decimal('20')
-    >>> line.info_unit_price
-    Decimal('10.0000')
+    >>> line.unit_price == Decimal('20')
+    True
+    >>> line.info_unit_price == Decimal('10.0000')
+    True
     >>> line.unit == unit
     True
     >>> line.info_unit == unit2
@@ -221,8 +221,8 @@ Supplier invoice::
     >>> line.amount == line.info_amount
     True
     >>> line.unit_price = Decimal('50')
-    >>> line.info_unit_price
-    Decimal('25.0000')
+    >>> line.info_unit_price == Decimal('25.0000')
+    True
     >>> line.amount == Decimal('250.00')
     True
     >>> line.amount == line.info_amount
