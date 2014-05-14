@@ -5,6 +5,8 @@ from trytond.model import fields
 from trytond.pyson import Eval, Bool
 from trytond.pool import PoolMeta
 from decimal import Decimal
+from trytond.config import CONFIG
+DIGITS = int(CONFIG.get('unit_price_digits', 4))
 
 __all__ = ['InformationUomMixin', 'InvoiceLine']
 __metaclass__ = PoolMeta
@@ -45,7 +47,8 @@ class InformationUomMixin:
         depends=['type', 'info_unit_digits', 'product', 'unit', 'unit_digits',
             'show_info_unit'])
 
-    info_unit_price = fields.Numeric('Information Unit Price', digits=(16, 4),
+    info_unit_price = fields.Numeric('Information Unit Price',
+        digits=(16, DIGITS),
         states={
             'invisible': (~Bool(Eval('show_info_unit')) |
                 (Eval('type') != 'line')),
