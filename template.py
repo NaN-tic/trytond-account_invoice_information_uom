@@ -19,18 +19,15 @@ class Template:
     info_unit = fields.Many2One('product.uom', 'Information UOM',
         states={'required': Bool(Eval('use_info_unit'))})
     info_list_price = fields.Function(fields.Numeric('Information List Price',
-            digits=(16, 8),
-            on_change=['list_price', 'info_list_price',
-                'info_ratio', 'use_info_unit'],
-            on_change_with=['info_ratio', 'list_price', 'use_info_unit']),
+            digits=(16, 8)),
         'on_change_with_info_list_price')
     info_cost_price = fields.Function(fields.Numeric('Information Cost Price',
-            digits=(16, 8), on_change=['cost_price', 'info_cost_price',
-                'info_ratio', 'use_info_unit'],
-            on_change_with=['info_ratio', 'cost_price', 'use_info_unit']),
+            digits=(16, 8)),
         'on_change_with_info_cost_price')
     info_ratio = fields.Numeric('Information Ratio', digits=(16, 4),
-            states={'required': Bool(Eval('use_info_unit'))})
+        states={
+            'required': Bool(Eval('use_info_unit')),
+            })
 
     def calc_info_quantity(self, qty, unit=None):
         pool = Pool()
@@ -92,18 +89,26 @@ class Template:
             price = (unit_price / self.info_ratio).quantize(_ROUND)
         return price
 
+    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
+        'info_list_price')
     def on_change_info_list_price(self, name=None):
         return {
             'list_price': self.get_unit_price(self.info_list_price)
             }
 
+    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
+        'info_list_price', 'cost_price')
     def on_change_info_cost_price(self, name=None):
         return {
             'cost_price': self.get_unit_price(self.info_cost_price)
             }
 
+    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
+        'info_list_price', 'list_price')
     def on_change_with_info_list_price(self, name=None):
         return self.get_info_list_price()
 
+    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
+        'info_list_price', 'cost_price')
     def on_change_with_info_cost_price(self, name=None):
         return self.get_info_cost_price()

@@ -21,17 +21,14 @@ DEPENDS = ['show_info_unit']
 
 
 class InformationUomMixin:
-    show_info_unit = fields.Function(fields.Boolean('Show Information UOM',
-            on_change_with=['product']), 'on_change_with_show_info_unit')
+    show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
+        'on_change_with_show_info_unit')
     info_unit = fields.Function(fields.Many2One('product.uom',
-            'Information UOM',
-            on_change_with=['product'], states=STATES, depends=DEPENDS),
+            'Information UOM', states=STATES, depends=DEPENDS),
         'on_change_with_info_unit')
     info_unit_digits = fields.Function(fields.Integer(
-        'Information Unit Digits', on_change_with=['info_unit'], states=STATES,
-            depends=DEPENDS),
+        'Information Unit Digits', states=STATES, depends=DEPENDS),
         'on_change_with_info_unit_digits')
-
     info_quantity = fields.Numeric('Information Quantity',
         digits=(16, Eval('info_unit_digits', 2)),
         states={
@@ -40,13 +37,7 @@ class InformationUomMixin:
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
             },
-        on_change_with=['quantity', 'product', 'info_quantity',
-            'info_unit_price', 'product', 'unit', 'info_unit'],
-        on_change=['quantity', 'unit_quantity', 'unit',
-            'info_quantity', 'info_unit_price', 'product'],
-        depends=['type', 'info_unit_digits', 'product', 'unit', 'unit_digits',
-            'show_info_unit'])
-
+        depends=['type', 'info_unit_digits', 'show_info_unit'])
     info_unit_price = fields.Numeric('Information Unit Price',
         digits=(16, DIGITS),
         states={
@@ -55,23 +46,17 @@ class InformationUomMixin:
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
             },
-        on_change=['info_unit_price', 'product', 'info_quantity', 'type'],
-        on_change_with=['unit_price', 'type', 'info_unit_price',
-            'info_quantity', 'product', 'unit_price', 'unit'],
-        depends=['type', 'product'])
-
+        depends=['type', 'show_info_unit'])
     info_amount = fields.Function(fields.Numeric('Information Amount',
             digits=(16, Eval('currency_digits', 2)),
             states={
                 'invisible': (~Bool(Eval('show_info_unit')) |
                     ~Eval('type').in_(['line', 'subtotal'])),
                 },
-            on_change_with=['info_unit_price', 'info_quantity'],
-            depends=['currency_digits']),
+            depends=['type', 'show_info_unit', 'currency_digits']),
         'on_change_with_info_amount')
-
-    currency_digits = fields.Function(fields.Integer('Currency Digits',
-            on_change_with=[]), 'on_change_with_currency_digits')
+    currency_digits = fields.Function(fields.Integer('Currency Digits'),
+        'on_change_with_currency_digits')
 
     def on_change_with_currency_digits(self, name=None):
         return 2
@@ -81,54 +66,53 @@ class InformationUomMixin:
         super(InformationUomMixin, cls).__setup__()
         for value in cls.amount.on_change_with:
             if value not in cls.info_quantity.on_change:
-                cls.info_quantity.on_change.append(value)
+                cls.info_quantity.on_change.add(value)
             if value not in cls.info_unit_price.on_change:
-                cls.info_unit_price.on_change.append(value)
+                cls.info_unit_price.on_change.add(value)
             if value not in cls.info_amount.on_change_with:
-                cls.info_amount.on_change_with.append(value)
+                cls.info_amount.on_change_with.add(value)
                 if not 'currency' in value:
                     cls.info_amount.depends.append(value)
-        if not cls.quantity.on_change:
-            cls.quantity.on_change = []
-        if not cls.unit_price.on_change:
-            cls.unit_price.on_change = []
-        if not cls.unit.on_change:
-            cls.unit.on_change = []
-        for value in cls.info_amount.on_change_with + ['product', 'quantity',
-                'unit_price', 'unit']:
+        for value in list(cls.info_amount.on_change_with) + ['product',
+                'quantity', 'unit_price', 'unit']:
             if value not in cls.quantity.on_change:
-                cls.quantity.on_change.append(value)
+                cls.quantity.on_change.add(value)
             if value not in cls.unit.on_change:
-                cls.unit.on_change.append(value)
+                cls.unit.on_change.add(value)
             if value not in cls.unit_price.on_change:
-                cls.unit_price.on_change.append(value)
+                cls.unit_price.on_change.add(value)
 
     @staticmethod
     def default_info_unit_digits():
         return 2
 
+    @fields.depends('info_unit')
     def on_change_with_info_unit_digits(self, name=None):
         if self.info_unit:
             return self.info_unit.digits
         return 2
 
+    @fields.depends('product')
     def on_change_with_show_info_unit(self, name=None):
         if self.product and self.product.use_info_unit:
             return True
         return False
 
+    @fields.depends('product')
     def on_change_with_info_unit(self, name=None):
         if (self.product and self.product.use_info_unit and
                 self.product.info_unit):
             return self.product.info_unit.id
         return None
 
+    @fields.depends('product', 'quantity', 'unit')
     def on_change_with_info_quantity(self, name=None):
         if not self.product or not self.quantity:
             return
         return Decimal(str(self.product.calc_info_quantity(self.quantity,
                     self.unit)))
 
+    @fields.depends('product', 'info_quantity', 'unit')
     def on_change_info_quantity(self, name=None):
         if not self.product:
             return {}
@@ -139,6 +123,7 @@ class InformationUomMixin:
             'amount':  self.on_change_with_amount(),
             }
 
+    @fields.depends('product', 'unit_price', 'type', 'product', 'unit')
     def on_change_with_info_unit_price(self, name=None):
         if not self.product:
             return
@@ -150,6 +135,7 @@ class InformationUomMixin:
             return self.product.get_info_cost_price(self.unit_price,
                 unit=self.unit)
 
+    @fields.depends('product', 'info_unit_price', 'unit')
     def on_change_info_unit_price(self, name=None):
         if not self.product:
             return {}
@@ -163,6 +149,7 @@ class InformationUomMixin:
             'amount': self.on_change_with_amount()
             }
 
+    @fields.depends('info_unit_price', 'info_quantity')
     def on_change_with_info_amount(self, name=None):
         info_amount = Decimal('0.0')
         if self.info_unit_price and self.info_quantity:
@@ -170,6 +157,7 @@ class InformationUomMixin:
                 Decimal(str(self.info_quantity)))
         return info_amount
 
+    @fields.depends('product', 'quantity', 'unit')
     def on_change_quantity(self, name=None):
         if not self.product:
             return {}
@@ -180,6 +168,8 @@ class InformationUomMixin:
             'info_amount':  self.on_change_with_info_amount(),
             }
 
+    @fields.depends('product', 'unit_price', 'type', 'product', 'quantity',
+        'unit')
     def on_change_unit(self, name=None):
         info_unit_price = self.on_change_with_info_unit_price()
         info_quantity = self.on_change_with_info_quantity()
@@ -190,6 +180,7 @@ class InformationUomMixin:
             'info_quant': self.on_change_with_info_unit_price(),
             }
 
+    @fields.depends('product', 'unit_price')
     def on_change_unit_price(self, name=None):
         if not self.product:
             return {}
@@ -212,17 +203,18 @@ class InvoiceLine(InformationUomMixin):
         super(InvoiceLine, cls).__setup__()
         for value in cls.amount.on_change_with:
             if value not in cls.info_quantity.on_change:
-                cls.info_quantity.on_change.append(value)
+                cls.info_quantity.on_change.add(value)
             if value not in cls.info_unit_price.on_change:
-                cls.info_unit_price.on_change.append(value)
+                cls.info_unit_price.on_change.add(value)
         if not 'invoice' in cls.currency_digits.on_change_with:
-            cls.currency_digits.on_change_with.append('invoice')
+            cls.currency_digits.on_change_with.add('invoice')
         for value in ('invoice_type',):
             if value not in cls.info_unit_price.on_change:
-                cls.info_unit_price.on_change.append(value)
-                cls.info_unit_price.on_change_with.append(value)
+                cls.info_unit_price.on_change.add(value)
+                cls.info_unit_price.on_change_with.add(value)
                 cls.info_unit_price.depends.append(value)
 
+    @fields.depends('invoice')
     def on_change_with_currency_digits(self, name=None):
         if self.invoice:
             return self.invoice.currency_digits
