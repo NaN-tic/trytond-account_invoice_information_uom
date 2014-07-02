@@ -111,11 +111,8 @@ class InformationUomMixin:
             return
         if not self.unit_price:
             return self.unit_price
-        if self.type in ('out_invoice', 'out_refund'):
-            return self.product.get_info_list_price(self.unit_price, self.unit)
-        else:
-            return self.product.get_info_cost_price(self.unit_price,
-                unit=self.unit)
+        res = self.product.get_info_unit_price(self.unit_price)
+        return res
 
     @fields.depends('product', 'info_unit_price', 'unit')
     def on_change_info_unit_price(self, name=None):
