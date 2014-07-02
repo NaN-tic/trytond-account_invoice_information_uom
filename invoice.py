@@ -57,18 +57,13 @@ class InformationUomMixin:
     def __setup__(cls):
         super(InformationUomMixin, cls).__setup__()
         for value in cls.amount.on_change_with:
-            if value not in cls.info_quantity.on_change:
-                cls.info_quantity.on_change.add(value)
-            if value not in cls.info_unit_price.on_change:
-                cls.info_unit_price.on_change.add(value)
+            cls.info_quantity.on_change.add(value)
+            cls.info_unit_price.on_change.add(value)
         for value in list(cls.amount.on_change_with) + ['product', 'quantity',
                 'unit_price', 'unit']:
-            if value not in cls.quantity.on_change:
-                cls.quantity.on_change.add(value)
-            if value not in cls.unit.on_change:
-                cls.unit.on_change.add(value)
-            if value not in cls.unit_price.on_change:
-                cls.unit_price.on_change.add(value)
+            cls.quantity.on_change.add(value)
+            cls.unit.on_change.add(value)
+            cls.unit_price.on_change.add(value)
 
     @staticmethod
     def default_info_unit_digits():
