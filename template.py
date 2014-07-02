@@ -24,44 +24,39 @@ class Template:
     info_cost_price = fields.Function(fields.Numeric('Information Cost Price',
             digits=(16, 8)),
         'on_change_with_info_cost_price')
-    info_ratio = fields.Numeric('Information Ratio', digits=(16, 4),
+    info_ratio = fields.Float('Information Ratio', digits=(16, 4),
         states={
             'required': Bool(Eval('use_info_unit')),
-            })
+            },
+        domain=[('info_ratio', '!=', 0.0)])
 
     def calc_info_quantity(self, qty, unit=None):
-        pool = Pool()
-        Uom = pool.get('product.uom')
+        Uom = Pool().get('product.uom')
         if not self.use_info_unit or not qty:
-            return _ZERO
+            return 0.0
         if unit and unit != self.default_uom:
             qty = Uom.compute_qty(unit, qty, self.default_uom)
-        info_qty = self.info_ratio * Decimal(str(qty))
-        return info_qty
+        return self.info_ratio * qty
 
     def calc_quantity(self, info_qty, unit=None):
-        pool = Pool()
-        Uom = pool.get('product.uom')
+        Uom = Pool().get('product.uom')
         if not info_qty or not self.use_info_unit:
-            return _ZERO
+            return 0.0
         info_qty = Uom.compute_qty(self.default_uom, float(info_qty), unit)
-        qty = Decimal(str(info_qty)) / self.info_ratio
-        return (qty).quantize(_ROUND)
+        return info_qty / self.info_ratio
 
     def get_info_list_price(self, unit=None):
-        pool = Pool()
-        Uom = pool.get('product.uom')
+        Uom = Pool().get('product.uom')
         factor = 1.0
         price = _ZERO
         if self.use_info_unit and self.info_ratio and self.list_price:
-            price = (self.list_price / self.info_ratio).quantize(_ROUND)
+            price = (self.list_price / Decimal(str(self.info_ratio))).quantize(_ROUND)
         if unit and unit != self.default_uom:
             factor = Uom.compute_qty(unit, factor, self.default_uom)
         return price / Decimal(str(factor))
 
     def get_info_cost_price(self, value=None, unit=None):
-        pool = Pool()
-        Uom = pool.get('product.uom')
+        Uom = Pool().get('product.uom')
         factor = 1.0
         price = _ZERO
         if not value:
@@ -86,7 +81,7 @@ class Template:
     def get_info_unit_price(self, unit_price):
         price = _ZERO
         if self.use_info_unit:
-            price = (unit_price / self.info_ratio).quantize(_ROUND)
+            price = (unit_price / Decimal(str(self.info_ratio))).quantize(_ROUND)
         return price
 
     @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',

@@ -29,7 +29,7 @@ class InformationUomMixin:
     info_unit_digits = fields.Function(fields.Integer(
         'Information Unit Digits', states=STATES, depends=DEPENDS),
         'on_change_with_info_unit_digits')
-    info_quantity = fields.Numeric('Information Quantity',
+    info_quantity = fields.Float('Information Quantity',
         digits=(16, Eval('info_unit_digits', 2)),
         states={
             'invisible': (~Bool(Eval('show_info_unit')) |
@@ -109,8 +109,7 @@ class InformationUomMixin:
     def on_change_with_info_quantity(self, name=None):
         if not self.product or not self.quantity:
             return
-        return Decimal(str(self.product.calc_info_quantity(self.quantity,
-                    self.unit)))
+        return self.product.calc_info_quantity(self.quantity, self.unit)
 
     @fields.depends('product', 'info_quantity', 'unit')
     def on_change_info_quantity(self, name=None):
