@@ -47,14 +47,6 @@ class InformationUomMixin:
                 (Eval('type') == 'line')),
             },
         depends=['type', 'show_info_unit'])
-    info_amount = fields.Function(fields.Numeric('Information Amount',
-            digits=(16, Eval('currency_digits', 2)),
-            states={
-                'invisible': (~Bool(Eval('show_info_unit')) |
-                    ~Eval('type').in_(['line', 'subtotal'])),
-                },
-            depends=['type', 'show_info_unit', 'currency_digits']),
-        'on_change_with_info_amount')
     currency_digits = fields.Function(fields.Integer('Currency Digits'),
         'on_change_with_currency_digits')
 
@@ -69,12 +61,8 @@ class InformationUomMixin:
                 cls.info_quantity.on_change.add(value)
             if value not in cls.info_unit_price.on_change:
                 cls.info_unit_price.on_change.add(value)
-            if value not in cls.info_amount.on_change_with:
-                cls.info_amount.on_change_with.add(value)
-                if not 'currency' in value:
-                    cls.info_amount.depends.append(value)
-        for value in list(cls.info_amount.on_change_with) + ['product',
-                'quantity', 'unit_price', 'unit']:
+        for value in list(cls.amount.on_change_with) + ['product', 'quantity',
+                'unit_price', 'unit']:
             if value not in cls.quantity.on_change:
                 cls.quantity.on_change.add(value)
             if value not in cls.unit.on_change:
@@ -148,14 +136,6 @@ class InformationUomMixin:
             'amount': self.on_change_with_amount()
             }
 
-    @fields.depends('info_unit_price', 'info_quantity')
-    def on_change_with_info_amount(self, name=None):
-        info_amount = Decimal('0.0')
-        if self.info_unit_price and self.info_quantity:
-            info_amount = (self.info_unit_price *
-                Decimal(str(self.info_quantity)))
-        return info_amount
-
     @fields.depends('product', 'quantity', 'unit')
     def on_change_quantity(self, name=None):
         if not self.product:
@@ -164,7 +144,6 @@ class InformationUomMixin:
         self.info_quantity = float(qty)
         return {
             'info_quantity': self.info_quantity,
-            'info_amount':  self.on_change_with_info_amount(),
             }
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'quantity',
@@ -190,7 +169,6 @@ class InformationUomMixin:
             self.info_unit_price = self.unit_price
         return {
             'info_unit_price': self.info_unit_price,
-            'info_amount': self.on_change_with_info_amount()
             }
 
 

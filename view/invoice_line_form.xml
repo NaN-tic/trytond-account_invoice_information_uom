@@ -3,16 +3,11 @@
 this repository contains the full copyright notices and license terms. -->
 <data>
     <xpath expr="/form/notebook/page[@id='general']/field[@name='taxes']" position="before">
-        <label name="info_unit"/>
-        <field name="info_unit"/>
         <label name="info_quantity"/>
         <field name="info_quantity"/>
+        <label name="info_unit"/>
+        <field name="info_unit"/>
         <label name="info_unit_price"/>
         <field name="info_unit_price"/>
-        <label name="info_amount"/>
-        <field name="info_amount"/>
-    </xpath>
-    <xpath expr="/form/notebook" position="before">
-        <field name="show_info_unit" invisible="1" />
     </xpath>
 </data>
