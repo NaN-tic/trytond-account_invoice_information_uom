@@ -181,14 +181,10 @@ Create invoice::
     True
     >>> line.amount == Decimal('200.0000')
     True
-    >>> line.amount == line.info_amount
-    True
     >>> line.unit_price = Decimal('50')
     >>> line.info_unit_price == Decimal('25.0000')
     True
     >>> line.amount == Decimal('250.00')
-    True
-    >>> line.amount == line.info_amount
     True
 
 Supplier invoice::
@@ -218,12 +214,8 @@ Supplier invoice::
     True
     >>> line.amount == Decimal('100.00')
     True
-    >>> line.amount == line.info_amount
-    True
     >>> line.unit_price = Decimal('50')
     >>> line.info_unit_price == Decimal('25.0000')
     True
     >>> line.amount == Decimal('250.00')
-    True
-    >>> line.amount == line.info_amount
     True
