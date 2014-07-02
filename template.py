@@ -73,7 +73,7 @@ class Template:
         factor = 1.0
         price = _ZERO
         if self.use_info_unit:
-            price = (info_price * self.info_ratio).quantize(_ROUND)
+            price = (info_price * Decimal(str(self.info_ratio))).quantize(_ROUND)
         if unit and unit != self.default_uom:
             factor = Uom.compute_qty(self.default_uom, factor, unit)
         return price / Decimal(str(factor))
