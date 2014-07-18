@@ -28,7 +28,10 @@ class Template:
         states={
             'required': Bool(Eval('use_info_unit')),
             },
-        domain=[('info_ratio', '!=', 0.0)])
+        domain=['OR',
+            [('info_ratio', '=', None)],
+            [('info_ratio', '!=', 0.0)],
+                ])
 
     def calc_info_quantity(self, qty, unit=None):
         Uom = Pool().get('product.uom')
