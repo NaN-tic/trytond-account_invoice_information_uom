@@ -26,10 +26,6 @@ msgctxt "field:account.invoice.line,show_info_unit:"
 msgid "Show Information UOM"
 msgstr "Mostrar UdM Informativa"
 
-msgctxt "field:product.template,info_cost_price:"
-msgid "Information Cost Price"
-msgstr "Preu de Cost UdM Informativa"
-
 msgctxt "field:product.template,info_list_price:"
 msgid "Information List Price"
 msgstr "Preu de Venda UdM Informativa"

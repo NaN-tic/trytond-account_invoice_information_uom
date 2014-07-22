@@ -19,8 +19,6 @@ this repository contains the full copyright notices and license terms. -->
             <field name="info_unit"/>
             <label name="info_list_price"/>
             <field name="info_list_price"/>
-            <label name="info_cost_price"/>
-            <field name="info_cost_price"/>
         </page>
     </xpath>
 </data>

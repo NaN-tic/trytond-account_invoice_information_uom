@@ -122,7 +122,8 @@ Create product::
 
     >>> ProductUom = Model.get('product.uom')
     >>> unit, = ProductUom.find([('name', '=', 'Unit')])
-    >>> unit2, = ProductUom.find([('name', '=', 'Kilogram')])
+    >>> kg, = ProductUom.find([('name', '=', 'Kilogram')])
+    >>> g, = ProductUom.find([('name', '=', 'Gram')])
     >>> ProductTemplate = Model.get('product.template')
     >>> Product = Model.get('product.product')
     >>> product = Product()
@@ -130,7 +131,7 @@ Create product::
     >>> template.name = 'product'
     >>> template.default_uom = unit
     >>> template.use_info_unit = True
-    >>> template.info_unit = unit2
+    >>> template.info_unit = kg
     >>> template.info_ratio = Decimal('2')
     >>> template.type = 'service'
     >>> template.list_price = Decimal('40')
@@ -138,8 +139,6 @@ Create product::
     >>> template.account_expense = expense
     >>> template.account_revenue = revenue
     >>> template.save()
-    >>> template.info_cost_price == Decimal('10.0000')
-    True
     >>> template.info_list_price == Decimal('20.0000')
     True
     >>> product.template = template
@@ -170,22 +169,34 @@ Create invoice::
     True
     >>> line.unit_price == Decimal('40')
     True
-    >>> line.info_unit_price == Decimal('20.0000')
+    >>> line.info_unit_price ==  Decimal('20.0000')
     True
     >>> line.unit == unit
     True
-    >>> line.info_unit == unit2
+    >>> line.info_unit == kg
     True
     >>> line.quantity = 5
-    >>> line.info_quantity == 10
-    True
-    >>> line.amount == Decimal('200.0000')
-    True
+    >>> line.info_quantity
+    10.0
+    >>> line.amount
+    Decimal('200.00')
     >>> line.unit_price = Decimal('50')
     >>> line.info_unit_price == Decimal('25.0000')
     True
     >>> line.amount == Decimal('250.00')
     True
+    >>> line.info_unit_price = Decimal('20')
+    >>> line.unit_price == Decimal('40')
+    True
+    >>> line.amount == Decimal('200.00')
+    True
+    >>> line.info_unit = g
+    >>> line.info_unit_price == Decimal('20000.0000')
+    True
+    >>> line.unit_price == Decimal('40')
+    True
+    >>> line.amount
+    Decimal('200.00')
 
 Supplier invoice::
 
@@ -201,21 +212,33 @@ Supplier invoice::
     >>> line.product = product
     >>> line.show_info_unit
     True
-    >>> line.unit_price == Decimal('20')
+    >>> line.unit_price == Decimal('20.0000')
     True
     >>> line.info_unit_price == Decimal('10.0000')
     True
     >>> line.unit == unit
     True
-    >>> line.info_unit == unit2
+    >>> line.info_unit == kg
     True
     >>> line.quantity = 5
-    >>> line.info_quantity == 10
-    True
+    >>> line.info_quantity
+    10.0
     >>> line.amount == Decimal('100.00')
     True
     >>> line.unit_price = Decimal('50')
     >>> line.info_unit_price == Decimal('25.0000')
     True
-    >>> line.amount == Decimal('250.00')
+    >>> line.amount
+    Decimal('250.00')
+    >>> line.info_unit_price = Decimal('20')
+    >>> line.unit_price == Decimal('40')
     True
+    >>> line.amount
+    Decimal('200.00')
+    >>> line.info_unit = g
+    >>> line.info_unit_price == Decimal('20000.0000')
+    True
+    >>> line.unit_price == Decimal('40')
+    True
+    >>> line.amount
+    Decimal('200.00')

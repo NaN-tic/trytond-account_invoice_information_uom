@@ -21,9 +21,6 @@ class Template:
     info_list_price = fields.Function(fields.Numeric('Information List Price',
             digits=(16, 8)),
         'on_change_with_info_list_price')
-    info_cost_price = fields.Function(fields.Numeric('Information Cost Price',
-            digits=(16, 8)),
-        'on_change_with_info_cost_price')
     info_ratio = fields.Float('Information Ratio', digits=(16, 4),
         states={
             'required': Bool(Eval('use_info_unit')),
@@ -32,6 +29,15 @@ class Template:
             [('info_ratio', '=', None)],
             [('info_ratio', '!=', 0.0)],
                 ])
+
+    def _compute_factor(self, factor=1.0, unit=None, base_unit=None):
+        pool = Pool()
+        Uom = pool.get('product.uom')
+        if not base_unit:
+            base_unit = self.default_uom
+        if unit:
+            factor = Uom.compute_qty(base_unit, factor, unit)
+        return factor
 
     def calc_info_quantity(self, qty, unit=None):
         Uom = Pool().get('product.uom')
@@ -49,43 +55,28 @@ class Template:
         return info_qty / self.info_ratio
 
     def get_info_list_price(self, unit=None):
-        Uom = Pool().get('product.uom')
-        factor = 1.0
+        factor = self._compute_factor()
         price = _ZERO
         if self.use_info_unit and self.info_ratio and self.list_price:
-            price = (self.list_price / Decimal(str(self.info_ratio))).quantize(_ROUND)
-        if unit and unit != self.default_uom:
-            factor = Uom.compute_qty(unit, factor, self.default_uom)
-        return price / Decimal(str(factor))
-
-    def get_info_cost_price(self, value=None, unit=None):
-        Uom = Pool().get('product.uom')
-        factor = 1.0
-        price = _ZERO
-        if not value:
-            value = self.cost_price
-        if self.use_info_unit and self.info_ratio and self.cost_price:
-            price = (value / self.info_ratio).quantize(_ROUND)
-        if unit and unit != self.default_uom:
-            factor = Uom.compute_qty(unit, factor, self.default_uom)
+            price = (self.list_price / Decimal(str(self.info_ratio))).quantize(
+                _ROUND)
         return price / Decimal(str(factor))
 
     def get_unit_price(self, info_price, unit=None):
-        pool = Pool()
-        Uom = pool.get('product.uom')
-        factor = 1.0
         price = _ZERO
+        factor = self._compute_factor(1.0, unit)
         if self.use_info_unit:
-            price = (info_price * Decimal(str(self.info_ratio))).quantize(_ROUND)
-        if unit and unit != self.default_uom:
-            factor = Uom.compute_qty(self.default_uom, factor, unit)
+            price = (info_price * Decimal(str(self.info_ratio))).quantize(
+                _ROUND)
         return price / Decimal(str(factor))
 
-    def get_info_unit_price(self, unit_price):
+    def get_info_unit_price(self, unit_price, unit=None):
         price = _ZERO
+        factor = self._compute_factor(1.0, unit, self.info_unit)
         if self.use_info_unit:
-            price = (unit_price / Decimal(str(self.info_ratio))).quantize(_ROUND)
-        return price
+            price = (unit_price / Decimal(str(self.info_ratio))).quantize(
+                _ROUND)
+        return (price * Decimal(str(factor))).quantize(_ROUND)
 
     @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
         'info_list_price')
@@ -95,18 +86,6 @@ class Template:
             }
 
     @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
-        'info_list_price', 'cost_price')
-    def on_change_info_cost_price(self, name=None):
-        return {
-            'cost_price': self.get_unit_price(self.info_cost_price)
-            }
-
-    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
         'info_list_price', 'list_price')
     def on_change_with_info_list_price(self, name=None):
         return self.get_info_list_price()
-
-    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
-        'info_list_price', 'cost_price')
-    def on_change_with_info_cost_price(self, name=None):
-        return self.get_info_cost_price()
