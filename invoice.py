@@ -65,6 +65,9 @@ class InformationUomMixin:
             cls.unit.on_change.add(value)
             cls.unit_price.on_change.add(value)
 
+        if hasattr(cls, 'gross_unit_price'):
+            cls.info_unit_price.on_change_with.add('gross_unit_price')
+
     @staticmethod
     def default_info_unit_digits():
         return 2
