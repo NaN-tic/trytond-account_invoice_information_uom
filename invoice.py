@@ -64,6 +64,8 @@ class InformationUomMixin:
             cls.quantity.on_change.add(value)
             cls.unit.on_change.add(value)
             cls.unit_price.on_change.add(value)
+        if hasattr(cls, 'gross_unit_price'):
+            cls.info_unit_price.on_change_with.add('gross_unit_price')
 
     @staticmethod
     def default_info_unit_digits():
@@ -111,22 +113,25 @@ class InformationUomMixin:
             return
         if not self.unit_price:
             return
-        res = self.product.get_info_unit_price(self.unit_price, self.info_unit)
-        return res
+        return self.product.get_info_unit_price(self.unit_price, self.info_unit)
 
     @fields.depends('product', 'info_unit_price', 'unit')
     def on_change_info_unit_price(self, name=None):
-        if not self.product:
+        if not self.product or not self.info_unit_price:
             return {}
-        if self.info_unit_price:
-            self.unit_price = self.product.get_unit_price(self.info_unit_price,
-                unit=self.unit)
-        else:
-            self.unit_price = self.info_unit_price
-        return {
-            'unit_price': self.unit_price,
-            'amount': self.on_change_with_amount()
-            }
+
+        self.unit_price = self.product.get_unit_price(self.info_unit_price,
+            unit=self.unit)
+
+        res = {}
+        res['unit_price'] = self.unit_price
+        if hasattr(self, 'gross_unit_price'):
+            self.gross_unit_price = self.unit_price
+            res['gross_unit_price'] = self.unit_price
+            res['discount'] = Decimal('0.0')
+        res['amount'] = self.on_change_with_amount()
+        return res
+
 
     @fields.depends('product', 'quantity', 'unit')
     def on_change_quantity(self, name=None):
