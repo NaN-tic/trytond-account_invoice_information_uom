@@ -1,20 +1,19 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from trytond.model import fields
-from trytond.pyson import Eval, Bool
+from trytond.pyson import Eval, Bool, Not
 from trytond.pool import Pool, PoolMeta
 from decimal import Decimal
 
 __all__ = ['Template']
-__metaclass__ = PoolMeta
 
 _ZERO = Decimal('0.0')
 _ROUND = Decimal('.0001')
 
 
 class Template:
+    __metaclass__ = PoolMeta
     __name__ = "product.template"
-
     use_info_unit = fields.Boolean('Use Information UOM')
     info_unit = fields.Many2One('product.uom', 'Information UOM',
         states={'required': Bool(Eval('use_info_unit'))})
@@ -29,6 +28,13 @@ class Template:
             [('info_ratio', '=', None)],
             [('info_ratio', '!=', 0.0)],
                 ])
+
+    @classmethod
+    def view_attributes(cls):
+        return super(Template, cls).view_attributes() + [
+            ('//page[@id="information_uom"]', 'states', {
+                    'invisible': Not(Bool(Eval('use_info_unit'))),
+                    })]
 
     def _compute_factor(self, factor=1.0, unit=None, base_unit=None):
         pool = Pool()

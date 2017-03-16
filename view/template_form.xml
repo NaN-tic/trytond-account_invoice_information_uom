@@ -8,8 +8,7 @@ this repository contains the full copyright notices and license terms. -->
          <field name="use_info_unit"/>
     </xpath>
     <xpath expr="/form/notebook/page[@id='general']" position="after">
-        <page id="information_uom" string="Information UOM"
-            states="{'invisible': Not(Bool(Eval('use_info_unit')))}">
+        <page id="information_uom" string="Information UOM">
             <label name="use_info_unit"/>
             <field name="use_info_unit"/>
             <newline/>

@@ -9,7 +9,6 @@ from trytond.config import config
 DIGITS = int(config.get('digits', 'unit_price_digits', 4))
 
 __all__ = ['InformationUomMixin', 'InvoiceLine']
-__metaclass__ = PoolMeta
 
 _ZERO = Decimal('0.0')
 _ROUND = Decimal('.0001')
@@ -20,7 +19,7 @@ STATES = {
 DEPENDS = ['show_info_unit']
 
 
-class InformationUomMixin:
+class InformationUomMixin(object):
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
         'on_change_with_show_info_unit')
     info_unit = fields.Function(fields.Many2One('product.uom',
@@ -64,6 +63,9 @@ class InformationUomMixin:
             cls.quantity.on_change.add(value)
             cls.unit.on_change.add(value)
             cls.unit_price.on_change.add(value)
+        if hasattr(cls, 'gross_unit_price'):
+            cls.info_unit_price.on_change_with.add('gross_unit_price')
+            cls.quantity.depends.append('minimum_quantity')
 
     @staticmethod
     def default_info_unit_digits():
@@ -95,15 +97,12 @@ class InformationUomMixin:
         return self.product.calc_info_quantity(self.quantity, self.unit)
 
     @fields.depends('product', 'info_quantity', 'unit')
-    def on_change_info_quantity(self, name=None):
+    def on_change_info_quantity(self):
         if not self.product:
-            return {}
+            return
         qty = self.product.calc_quantity(self.info_quantity, self.unit)
         self.quantity = float(qty)
-        return {
-            'quantity': float(qty),
-            'amount':  self.on_change_with_amount(),
-            }
+        self.amount = self.on_change_with_amount()
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit')
     def on_change_with_info_unit_price(self, name=None):
@@ -111,60 +110,49 @@ class InformationUomMixin:
             return
         if not self.unit_price:
             return
-        res = self.product.get_info_unit_price(self.unit_price, self.info_unit)
-        return res
+        return self.product.get_info_unit_price(self.unit_price, self.info_unit)
 
-    @fields.depends('product', 'info_unit_price', 'unit')
-    def on_change_info_unit_price(self, name=None):
-        if not self.product:
-            return {}
-        if self.info_unit_price:
-            self.unit_price = self.product.get_unit_price(self.info_unit_price,
-                unit=self.unit)
-        else:
-            self.unit_price = self.info_unit_price
-        return {
-            'unit_price': self.unit_price,
-            'amount': self.on_change_with_amount()
-            }
+    @fields.depends('product', 'info_unit_price', 'unit', 'gross_unit_price')
+    def on_change_info_unit_price(self):
+        if not self.product or not self.info_unit_price:
+            return
+
+        self.unit_price = self.product.get_unit_price(self.info_unit_price,
+            unit=self.unit)
+
+        self.unit_price = self.unit_price
+        if hasattr(self, 'gross_unit_price'):
+            self.gross_unit_price = self.unit_price
+            self.discount = Decimal('0.0')
+        self.amount = self.on_change_with_amount()
 
     @fields.depends('product', 'quantity', 'unit')
-    def on_change_quantity(self, name=None):
+    def on_change_quantity(self):
         if not self.product:
-            return {}
+            return
         qty = self.product.calc_info_quantity(self.quantity, self.unit)
         self.info_quantity = float(qty)
-        return {
-            'info_quantity': self.info_quantity,
-            }
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'quantity',
         'unit')
-    def on_change_unit(self, name=None):
-        info_unit_price = self.on_change_with_info_unit_price()
-        info_quantity = self.on_change_with_info_quantity()
-
-        return {
-            'info_unit_price': info_unit_price,
-            'info_quantity': info_quantity,
-            'info_quant': self.on_change_with_info_unit_price(),
-            }
+    def on_change_unit(self):
+        self.info_unit_price = self.on_change_with_info_unit_price()
+        self.info_quantity = self.on_change_with_info_quantity()
+        self.info_quant = self.on_change_with_info_unit_price()
 
     @fields.depends('product', 'unit_price', 'info_unit')
-    def on_change_unit_price(self, name=None):
+    def on_change_unit_price(self):
         if not self.product:
-            return {}
+            return
         if self.unit_price:
             self.info_unit_price = self.product.get_info_unit_price(
                 self.unit_price, self.info_unit)
         else:
             self.info_unit_price = self.unit_price
-        return {
-            'info_unit_price': self.info_unit_price,
-            }
 
 
 class InvoiceLine(InformationUomMixin):
+    __metaclass__ = PoolMeta
     __name__ = 'account.invoice.line'
 
     @classmethod
