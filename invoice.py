@@ -79,22 +79,21 @@ class InformationUomMixin(object):
 
     @fields.depends('product')
     def on_change_with_show_info_unit(self, name=None):
-        if self.product and self.product.use_info_unit:
+        if self.product and self.product.template.use_info_unit:
             return True
         return False
 
     @fields.depends('product')
     def on_change_with_info_unit(self, name=None):
-        if (self.product and self.product.use_info_unit and
-                self.product.info_unit):
-            return self.product.info_unit.id
+        if (self.product and self.product.template.use_info_unit):
+            return self.product.template.info_unit.id
         return None
 
     @fields.depends('product', 'quantity', 'unit')
     def on_change_with_info_quantity(self, name=None):
         if not self.product or not self.quantity:
             return
-        return self.product.calc_info_quantity(self.quantity, self.unit)
+        return self.product.template.calc_info_quantity(self.quantity, self.unit)
 
     @fields.depends('product', 'info_quantity', 'unit')
     def on_change_info_quantity(self):
@@ -106,18 +105,17 @@ class InformationUomMixin(object):
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit')
     def on_change_with_info_unit_price(self, name=None):
-        if not self.product:
+        if not self.product or not self.unit_price:
             return
-        if not self.unit_price:
-            return
-        return self.product.get_info_unit_price(self.unit_price, self.info_unit)
+        return self.product.template.get_info_unit_price(
+            self.unit_price, self.info_unit)
 
     @fields.depends('product', 'info_unit_price', 'unit', 'gross_unit_price')
     def on_change_info_unit_price(self):
         if not self.product or not self.info_unit_price:
             return
 
-        self.unit_price = self.product.get_unit_price(self.info_unit_price,
+        self.unit_price = self.product.template.get_unit_price(self.info_unit_price,
             unit=self.unit)
 
         self.unit_price = self.unit_price
@@ -130,7 +128,7 @@ class InformationUomMixin(object):
     def on_change_quantity(self):
         if not self.product:
             return
-        qty = self.product.calc_info_quantity(self.quantity, self.unit)
+        qty = self.product.template.calc_info_quantity(self.quantity, self.unit)
         self.info_quantity = float(qty)
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'quantity',
@@ -145,7 +143,7 @@ class InformationUomMixin(object):
         if not self.product:
             return
         if self.unit_price:
-            self.info_unit_price = self.product.get_info_unit_price(
+            self.info_unit_price = self.product.template.get_info_unit_price(
                 self.unit_price, self.info_unit)
         else:
             self.info_unit_price = self.unit_price
