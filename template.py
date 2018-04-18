@@ -85,13 +85,6 @@ class Template:
         return (price * Decimal(str(factor))).quantize(_ROUND)
 
     @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
-        'info_list_price')
-    def on_change_info_list_price(self, name=None):
-        return {
-            'list_price': self.get_unit_price(self.info_list_price)
-            }
-
-    @fields.depends('use_info_unit', 'info_price', 'info_ratio', 'default_uom',
         'info_list_price', 'list_price')
     def on_change_with_info_list_price(self, name=None):
         return self.get_info_list_price()
