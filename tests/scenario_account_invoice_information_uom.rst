@@ -1,6 +1,6 @@
-=========================
-Invoice Supplier Scenario
-=========================
+================================
+Invoice Information UOM Scenario
+================================
 
 Imports::
 

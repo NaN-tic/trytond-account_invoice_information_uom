@@ -1,6 +1,6 @@
-=========================
-Invoice Supplier Scenario
-=========================
+==============================
+Invoice with Discount Scenario
+==============================
 
 Imports::
 
