@@ -11,12 +11,13 @@ _ZERO = Decimal('0.0')
 _ROUND = Decimal('.0001')
 
 
-class Template:
-    __metaclass__ = PoolMeta
+class Template(metaclass=PoolMeta):
     __name__ = "product.template"
     use_info_unit = fields.Boolean('Use Information UOM')
     info_unit = fields.Many2One('product.uom', 'Information UOM',
-        states={'required': Bool(Eval('use_info_unit'))})
+        states={
+            'required': Bool(Eval('use_info_unit'))
+            })
     info_list_price = fields.Function(fields.Numeric('Information List Price',
             digits=(16, 8)),
         'on_change_with_info_list_price')

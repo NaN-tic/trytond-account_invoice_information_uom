@@ -149,8 +149,7 @@ class InformationUomMixin(object):
             self.info_unit_price = self.unit_price
 
 
-class InvoiceLine(InformationUomMixin):
-    __metaclass__ = PoolMeta
+class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
     __name__ = 'account.invoice.line'
 
     @classmethod
