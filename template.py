@@ -37,6 +37,7 @@ class Template(metaclass=PoolMeta):
                     'invisible': Not(Bool(Eval('use_info_unit'))),
                     })]
 
+    @fields.depends('default_uom')
     def _compute_factor(self, factor=1.0, unit=None, base_unit=None):
         pool = Pool()
         Uom = pool.get('product.uom')
@@ -61,6 +62,8 @@ class Template(metaclass=PoolMeta):
         info_qty = Uom.compute_qty(self.default_uom, float(info_qty), unit)
         return info_qty / self.info_ratio
 
+    @fields.depends('use_info_unit', 'info_ratio', 'default_uom',
+        'list_price')
     def get_info_list_price(self, unit=None):
         factor = self._compute_factor()
         price = _ZERO
@@ -85,6 +88,6 @@ class Template(metaclass=PoolMeta):
                 _ROUND)
         return (price * Decimal(str(factor))).quantize(_ROUND)
 
-    @fields.depends('use_info_unit', 'info_ratio', 'default_uom', 'list_price')
+    @fields.depends(methods=['get_info_list_price'])
     def on_change_with_info_list_price(self, name=None):
         return self.get_info_list_price()

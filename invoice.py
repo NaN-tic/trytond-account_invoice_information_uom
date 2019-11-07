@@ -110,7 +110,7 @@ class InformationUomMixin(object):
         return self.product.template.get_info_unit_price(
             self.unit_price, self.info_unit)
 
-    @fields.depends('product', 'info_unit_price', 'unit', 'gross_unit_price')
+    @fields.depends('product', 'info_unit_price', 'unit')
     def on_change_info_unit_price(self):
         if not self.product or not self.info_unit_price:
             return
@@ -168,7 +168,7 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
                 cls.info_unit_price.on_change_with.add(value)
                 cls.info_unit_price.depends.append(value)
 
-    @fields.depends('invoice')
+    @fields.depends('invoice', '_parent_invoice.currency_digits')
     def on_change_with_currency_digits(self, name=None):
         if self.invoice:
             return self.invoice.currency_digits
