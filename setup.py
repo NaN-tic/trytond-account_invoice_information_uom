@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# This file is part account_bank_statement_account module for Tryton.
+# The COPYRIGHT file at the top level of this repository contains
+# the full copyright notices and license terms.
 
 from setuptools import setup
 import re
@@ -7,12 +9,12 @@ import os
 import io
 from configparser import ConfigParser
 
+
 MODULE = 'account_invoice_information_uom'
 PREFIX = 'nantic'
 MODULE2PREFIX = {
     'account_invoice_discount': 'trytonspain',
-    }
-
+}
 
 def read(fname):
     return io.open(
@@ -35,51 +37,46 @@ info = dict(config.items('tryton'))
 for key in ('depends', 'extras_depend', 'xml'):
     if key in info:
         info[key] = info[key].strip().splitlines()
-
 version = info.get('version', '0.0.1')
 major_version, minor_version, _ = version.split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 
 requires = []
-for dep in info.get('depends', []) + ['account_invoice_discount']:
+for dep in info.get('depends', []):
     if not re.match(r'(ir|res)(\W|$)', dep):
         prefix = MODULE2PREFIX.get(dep, 'trytond')
         requires.append(get_require_version('%s_%s' % (prefix, dep)))
 requires.append(get_require_version('trytond'))
 
-tests_require = [
-    get_require_version('proteus'),
-    get_require_version('trytonspain-account_invoice_discount')
-]
-
+tests_require = [get_require_version('proteus')]
 series = '%s.%s' % (major_version, minor_version)
 if minor_version % 2:
     branch = 'default'
 else:
     branch = series
-
 dependency_links = [
-    ('hg+https://bitbucket.org/trytonspain/'
+    ('git+https://github.com/trytonspain/'
         'trytond-account_invoice_discount@%(branch)s'
         '#egg=trytonspain-account_invoice_discount-%(series)s' % {
             'branch': branch,
             'series': series,
             }),
-    ]
 
+    ]
 if minor_version % 2:
     # Add development index for testing with proteus
     dependency_links.append('https://trydevpi.tryton.org/')
 
 setup(name='%s_%s' % (PREFIX, MODULE),
     version=version,
-    description='',
+    description='Tryton Account Invoice Discount Module',
     long_description=read('README'),
-    author='NaN·tic',
-    author_email='info@nan-tic.com',
-    url='http://www.nan-tic.com/',
-    download_url="https://bitbucket.org/nantic/trytond-%s" % MODULE,
+    author='TrytonSpain',
+    author_email='info@trytonspain.com',
+    url='https://github.com/trytonspain/',
+    download_url="https://github.com/trytonspain/trytond-%s" % MODULE,
+    keywords='',
     package_dir={'trytond.modules.%s' % MODULE: '.'},
     packages=[
         'trytond.modules.%s' % MODULE,
@@ -87,7 +84,8 @@ setup(name='%s_%s' % (PREFIX, MODULE),
         ],
     package_data={
         'trytond.modules.%s' % MODULE: (info.get('xml', [])
-            + ['tryton.cfg', 'locale/*.po', 'tests/*.rst']),
+            + ['tryton.cfg', 'view/*.xml', 'locale/*.po', '*.odt',
+                'icons/*.svg', 'tests/*.rst']),
         },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -104,7 +102,11 @@ setup(name='%s_%s' % (PREFIX, MODULE),
         'Natural Language :: English',
         'Natural Language :: French',
         'Natural Language :: German',
+        'Natural Language :: Hungarian',
+        'Natural Language :: Italian',
+        'Natural Language :: Portuguese (Brazilian)',
         'Natural Language :: Russian',
+        'Natural Language :: Slovenian',
         'Natural Language :: Spanish',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
@@ -130,5 +132,4 @@ setup(name='%s_%s' % (PREFIX, MODULE),
     convert_2to3_doctests=[
         'tests/scenario_account_invoice_discount.rst',
         'tests/scenario_account_invoice_information_uom.rst',
-        ],
-    )
+        ])
