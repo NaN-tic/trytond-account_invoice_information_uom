@@ -71,7 +71,7 @@ class InformationUomMixin(object):
     def default_info_unit_digits():
         return 2
 
-    @fields.depends('info_unit')
+    @fields.depends('product')
     def on_change_with_info_unit_digits(self, name=None):
         if self.info_unit:
             return self.info_unit.digits
