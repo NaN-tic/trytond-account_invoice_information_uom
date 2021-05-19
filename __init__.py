@@ -10,3 +10,7 @@ def register():
         template.Template,
         invoice.InvoiceLine,
         module='account_invoice_information_uom', type_='model')
+    Pool.register(
+        invoice.SaleLine,
+        depends=['sale'],
+        module='account_invoice_information_uom', type_='model')

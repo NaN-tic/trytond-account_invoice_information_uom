@@ -18,6 +18,16 @@ STATES = {
     }
 DEPENDS = ['show_info_unit']
 
+class SaleLine(metaclass=PoolMeta):
+    __name__ = 'sale.line'
+
+    def get_invoice_line(self):
+        invoice_line = super().get_invoice_line()
+        if not invoice_line:
+            return invoice_line
+        invoice_line, = invoice_line
+        invoice_line.on_change_unit()
+        return [invoice_line]
 
 class InformationUomMixin(object):
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
@@ -138,7 +148,7 @@ class InformationUomMixin(object):
     def on_change_unit(self):
         self.info_unit_price = self.on_change_with_info_unit_price()
         self.info_quantity = self.on_change_with_info_quantity()
-        self.info_quant = self.on_change_with_info_unit_price()
+
 
     @fields.depends('product', 'unit_price', 'info_unit')
     def on_change_unit_price(self):
