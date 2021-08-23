@@ -29,6 +29,7 @@ class SaleLine(metaclass=PoolMeta):
         invoice_line.on_change_unit()
         return [invoice_line]
 
+
 class InformationUomMixin(object):
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
         'on_change_with_show_info_unit')
@@ -56,11 +57,6 @@ class InformationUomMixin(object):
                 (Eval('type') == 'line')),
             },
         depends=['type', 'show_info_unit'])
-    currency_digits = fields.Function(fields.Integer('Currency Digits'),
-        'on_change_with_currency_digits')
-
-    def on_change_with_currency_digits(self, name=None):
-        return 2
 
     @classmethod
     def __setup__(cls):
@@ -172,16 +168,8 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
                 cls.info_quantity.on_change.add(value)
             if value not in cls.info_unit_price.on_change:
                 cls.info_unit_price.on_change.add(value)
-        if not 'invoice' in cls.currency_digits.on_change_with:
-            cls.currency_digits.on_change_with.add('invoice')
         for value in ('invoice_type',):
             if value not in cls.info_unit_price.on_change:
                 cls.info_unit_price.on_change.add(value)
                 cls.info_unit_price.on_change_with.add(value)
                 cls.info_unit_price.depends.append(value)
-
-    @fields.depends('invoice', '_parent_invoice.currency_digits')
-    def on_change_with_currency_digits(self, name=None):
-        if self.invoice:
-            return self.invoice.currency_digits
-        return 2
