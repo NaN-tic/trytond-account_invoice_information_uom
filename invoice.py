@@ -36,18 +36,15 @@ class InformationUomMixin(object):
     info_unit = fields.Function(fields.Many2One('product.uom',
             'Information UOM', states=STATES, depends=DEPENDS),
         'on_change_with_info_unit')
-    info_unit_digits = fields.Function(fields.Integer(
-        'Information Unit Digits', states=STATES, depends=DEPENDS),
-        'on_change_with_info_unit_digits')
     info_quantity = fields.Float('Information Quantity',
-        digits=(16, Eval('info_unit_digits', 2)),
+        digits='info_unit',
         states={
             'invisible': (~Bool(Eval('show_info_unit')) |
                 (Eval('type') != 'line')),
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
             },
-        depends=['type', 'info_unit_digits', 'show_info_unit'])
+        depends=['type', 'show_info_unit'])
     info_unit_price = fields.Numeric('Information Unit Price',
         digits=price_digits,
         states={
@@ -72,16 +69,6 @@ class InformationUomMixin(object):
         if hasattr(cls, 'gross_unit_price'):
             cls.info_unit_price.on_change_with.add('gross_unit_price')
             cls.quantity.depends.append('minimum_quantity')
-
-    @staticmethod
-    def default_info_unit_digits():
-        return 2
-
-    @fields.depends('product')
-    def on_change_with_info_unit_digits(self, name=None):
-        if self.info_unit:
-            return self.info_unit.digits
-        return 2
 
     @fields.depends('product')
     def on_change_with_show_info_unit(self, name=None):

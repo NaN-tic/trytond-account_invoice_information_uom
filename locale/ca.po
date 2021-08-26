@@ -1,4 +1,4 @@
-# 
+#
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
@@ -13,10 +13,6 @@ msgstr "Quantitat UdM Informativa"
 msgctxt "field:account.invoice.line,info_unit:"
 msgid "Information UOM"
 msgstr "UdM Informativa"
-
-msgctxt "field:account.invoice.line,info_unit_digits:"
-msgid "Information Unit Digits"
-msgstr "Digits UdM Informativa"
 
 msgctxt "field:account.invoice.line,info_unit_price:"
 msgid "Information Unit Price"
