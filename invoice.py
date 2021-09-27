@@ -31,6 +31,7 @@ class SaleLine(metaclass=PoolMeta):
 
 
 class InformationUomMixin(object):
+    __slots__ = ()
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
         'on_change_with_show_info_unit')
     info_unit = fields.Function(fields.Many2One('product.uom',
