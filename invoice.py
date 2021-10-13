@@ -3,7 +3,7 @@
 
 from trytond.model import fields
 from trytond.pyson import Eval, Bool
-from trytond.pool import PoolMeta
+from trytond.pool import PoolMeta, Pool
 from decimal import Decimal
 from trytond.modules.product import price_digits
 
@@ -114,12 +114,16 @@ class InformationUomMixin(object):
         self.quantity = float(qty)
         self.amount = self.on_change_with_amount()
 
-    @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit')
+    @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit', 'unit')
     def on_change_with_info_unit_price(self, name=None):
-        if not self.product or not self.unit_price:
+        Uom = Pool().get('product.uom')
+        if not self.product or not self.unit_price or not self.unit:
             return
-        return self.product.template.get_info_unit_price(
-            self.unit_price, self.info_unit)
+        price = self.unit_price
+        if self.unit and self.unit != self.product.default_uom:
+            price = Uom.compute_price(self.unit, price,
+                self.product.default_uom)
+        return self.product.template.get_info_unit_price(price, self.info_unit)
 
     @fields.depends('product', 'info_unit_price', 'unit',
         methods=['on_change_with_amount'])
@@ -150,13 +154,20 @@ class InformationUomMixin(object):
         self.info_quantity = self.on_change_with_info_quantity()
 
 
-    @fields.depends('product', 'unit_price', 'info_unit')
+    @fields.depends('product', 'unit_price', 'info_unit', 'unit')
     def on_change_unit_price(self):
+        Uom = Pool().get('product.uom')
+
         if not self.product:
             return
+
         if self.unit_price:
+            price = self.unit_price
+            if self.unit and self.unit != self.product.default_uom:
+                price = Uom.compute_price(self.unit, price,
+                    self.product.template.default_uom)
             self.info_unit_price = self.product.template.get_info_unit_price(
-                self.unit_price, self.info_unit)
+                price, self.info_unit)
         else:
             self.info_unit_price = self.unit_price
 
