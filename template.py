@@ -53,14 +53,14 @@ class Template(metaclass=PoolMeta):
             return 0.0
         if unit and unit != self.default_uom:
             qty = Uom.compute_qty(unit, qty, self.default_uom)
-        return self.info_ratio * qty
+        return self.info_unit.round(self.info_ratio * qty)
 
     def calc_quantity(self, info_qty, unit=None):
         Uom = Pool().get('product.uom')
         if not info_qty or not self.use_info_unit:
             return 0.0
         info_qty = Uom.compute_qty(self.default_uom, float(info_qty), unit)
-        return info_qty / self.info_ratio
+        return self.default_uom.round(info_qty / self.info_ratio)
 
     @fields.depends('use_info_unit', 'info_ratio', 'default_uom',
         'list_price')
