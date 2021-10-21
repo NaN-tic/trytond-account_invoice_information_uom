@@ -4,6 +4,8 @@ from trytond.model import fields
 from trytond.pyson import Eval, Bool, Not
 from trytond.pool import Pool, PoolMeta
 from decimal import Decimal
+from trytond.modules.product import price_digits
+
 
 __all__ = ['Template']
 
@@ -70,7 +72,7 @@ class Template(metaclass=PoolMeta):
         if self.use_info_unit and self.info_ratio and self.list_price:
             price = (self.list_price / Decimal(str(self.info_ratio))).quantize(
                 _ROUND)
-        return price / Decimal(str(factor))
+        return (price / Decimal(str(factor))).quantize(_ROUND)
 
     def get_unit_price(self, info_price, unit=None):
         price = _ZERO
@@ -78,7 +80,8 @@ class Template(metaclass=PoolMeta):
         if self.use_info_unit:
             price = (info_price * Decimal(str(self.info_ratio))).quantize(
                 _ROUND)
-        return price / Decimal(str(factor))
+        return (price / Decimal(str(factor))).quantize(
+            Decimal('10')**-price_digits[1])
 
     def get_info_unit_price(self, unit_price, unit=None):
         price = _ZERO
