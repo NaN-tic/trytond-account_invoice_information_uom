@@ -111,7 +111,7 @@ class InformationUomMixin(object):
         if not self.product:
             return
         qty = self.product.template.calc_quantity(self.info_quantity, self.unit)
-        self.quantity = float(qty)
+        self.quantity = qty
         self.amount = self.on_change_with_amount()
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit', 'unit')
