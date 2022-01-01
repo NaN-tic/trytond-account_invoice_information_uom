@@ -145,7 +145,7 @@ class InformationUomMixin(object):
         if not self.product:
             return
         qty = self.product.template.calc_info_quantity(self.quantity, self.unit)
-        self.info_quantity = float(qty)
+        self.info_quantity = self.unit.round(float(qty))
 
     @fields.depends('product', 'unit_price', 'type', 'product', 'quantity',
         'unit')
