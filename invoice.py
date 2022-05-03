@@ -69,7 +69,7 @@ class InformationUomMixin(object):
             cls.unit_price.on_change.add(value)
         if hasattr(cls, 'gross_unit_price'):
             cls.info_unit_price.on_change_with.add('gross_unit_price')
-            cls.quantity.depends.append('minimum_quantity')
+            cls.quantity.depends.add('minimum_quantity')
 
     @fields.depends('product')
     def on_change_with_show_info_unit(self, name=None):
@@ -171,4 +171,4 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
             if value not in cls.info_unit_price.on_change:
                 cls.info_unit_price.on_change.add(value)
                 cls.info_unit_price.on_change_with.add(value)
-                cls.info_unit_price.depends.append(value)
+                cls.info_unit_price.depends.add(value)
