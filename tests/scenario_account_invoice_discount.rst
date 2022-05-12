@@ -9,6 +9,7 @@ Imports::
     >>> from decimal import Decimal
     >>> from trytond.tests.tools import activate_modules
     >>> from proteus import config, Model, Wizard
+    >>> from trytond.tests.tools import activate_modules, set_user
     >>> from trytond.modules.company.tests.tools import create_company, \
     ...     get_company
     >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
@@ -17,12 +18,7 @@ Imports::
     ...     set_fiscalyear_invoice_sequences
     >>> today = datetime.date.today()
 
-Create database::
-
-    >>> config = config.set_trytond()
-    >>> config.pool.test = True
-
-Install account_invoice::
+Activate modules::
 
     >>> config = activate_modules(['account_invoice_discount','account_invoice_information_uom'])
 

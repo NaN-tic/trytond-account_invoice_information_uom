@@ -17,12 +17,7 @@ Imports::
     ...     set_fiscalyear_invoice_sequences
     >>> today = datetime.date.today()
 
-Create database::
-
-    >>> config = config.set_trytond()
-    >>> config.pool.test = True
-
-Install account_invoice::
+Activate module::
 
     >>> config = activate_modules('account_invoice_information_uom')
 
