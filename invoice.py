@@ -115,10 +115,11 @@ class InformationUomMixin(object):
         if not self.product or not self.info_unit_price:
             return
 
+        DIGITS=price_digits[1]
         self.unit_price = self.product.template.get_unit_price(
             self.info_unit_price, unit=self.unit)
 
-        self.unit_price = self.unit_price
+        self.unit_price = round(self.unit_price, DIGITS)
         if hasattr(self, 'gross_unit_price'):
             self.gross_unit_price = self.unit_price
             self.discount = Decimal('0.0')
@@ -144,14 +145,15 @@ class InformationUomMixin(object):
 
         if not self.product:
             return
-
+        DIGITS=price_digits[1]
         if self.unit_price:
             price = self.unit_price
             if self.unit and self.unit != self.product.default_uom:
                 price = Uom.compute_price(self.unit, price,
                     self.product.template.default_uom)
-            self.info_unit_price = self.product.template.get_info_unit_price(
-                price, self.info_unit)
+            self.info_unit_price = round(
+                self.product.template.get_info_unit_price(
+                    price, self.info_unit), DIGITS)
         else:
             self.info_unit_price = self.unit_price
 
