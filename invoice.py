@@ -127,6 +127,11 @@ class InformationUomMixin(object):
 
     @fields.depends('product', 'quantity', 'unit')
     def on_change_quantity(self):
+        try:
+            super().on_change_quantity()
+        except:
+            pass
+
         if not self.product:
             return
         qty = self.product.template.calc_info_quantity(self.quantity, self.unit)
