@@ -203,3 +203,14 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
         if self.invoice:
             return self.invoice.currency_digits
         return 2
+
+    def _credit(self):
+        line = super(InvoiceLine, self)._credit()
+        if self.info_unit_price:
+            line.info_unit_price = self.info_unit_price
+
+        if self.info_quantity:
+            line.info_quantity = -self.info_quantity
+        else:
+            line.info_unit_price = self.info_unit_price
+        return line
