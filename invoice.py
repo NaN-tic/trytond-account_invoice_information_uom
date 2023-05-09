@@ -179,3 +179,15 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
                 cls.info_unit_price.on_change.add(value)
                 cls.info_unit_price.on_change_with.add(value)
                 cls.info_unit_price.depends.add(value)
+
+    def _credit(self):
+        line = super(InvoiceLine, self)._credit()
+        if self.info_unit_price:
+            line.info_unit_price = self.info_unit_price
+
+        if self.info_quantity:
+            line.info_quantity = -self.info_quantity
+        else:
+            line.info_unit_price = self.info_unit_price
+        return line
+
