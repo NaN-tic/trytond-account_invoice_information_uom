@@ -98,10 +98,10 @@ class InformationUomMixin(object):
         self.quantity = qty
         self.amount = self.on_change_with_amount()
 
-    @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit', 'unit')
+    @fields.depends('product', 'unit_price', 'type', 'product', 'quantity', 'info_unit', 'unit')
     def on_change_with_info_unit_price(self, name=None):
         Uom = Pool().get('product.uom')
-        if not self.product or not self.unit_price or not self.unit:
+        if not self.product or self.unit_price is None or not self.unit:
             return
         price = self.unit_price
         if self.unit and self.unit != self.product.default_uom:
@@ -190,4 +190,3 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
         else:
             line.info_unit_price = self.info_unit_price
         return line
-
