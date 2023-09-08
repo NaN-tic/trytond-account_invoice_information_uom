@@ -7,9 +7,6 @@ from trytond.pool import PoolMeta, Pool
 from decimal import Decimal
 from trytond.modules.product import price_digits
 
-
-__all__ = ['InformationUomMixin', 'InvoiceLine']
-
 _ZERO = Decimal('0.0')
 _ROUND = Decimal('.0001')
 
@@ -18,16 +15,6 @@ STATES = {
     }
 DEPENDS = ['show_info_unit']
 
-class SaleLine(metaclass=PoolMeta):
-    __name__ = 'sale.line'
-
-    def get_invoice_line(self):
-        invoice_line = super().get_invoice_line()
-        if not invoice_line:
-            return invoice_line
-        invoice_line, = invoice_line
-        invoice_line.on_change_unit()
-        return [invoice_line]
 
 
 class InformationUomMixin(object):
@@ -151,7 +138,7 @@ class InformationUomMixin(object):
         if not self.product:
             return
         DIGITS=price_digits[1]
-        if self.unit_price:
+        if self.unit_price is not None:
             price = self.unit_price
             if self.unit and self.unit != self.product.default_uom:
                 price = Uom.compute_price(self.unit, price,
@@ -182,10 +169,10 @@ class InvoiceLine(InformationUomMixin, metaclass=PoolMeta):
 
     def _credit(self):
         line = super(InvoiceLine, self)._credit()
-        if self.info_unit_price:
+        if self.info_unit_price is not None:
             line.info_unit_price = self.info_unit_price
 
-        if self.info_quantity:
+        if self.info_quantity is not None:
             line.info_quantity = -self.info_quantity
         else:
             line.info_unit_price = self.info_unit_price
