@@ -2,6 +2,7 @@
 # copyright notices and license terms.
 from trytond.pool import Pool
 from . import invoice
+from . import sale
 
 
 def register():
@@ -9,6 +10,6 @@ def register():
         invoice.InvoiceLine,
         module='account_invoice_information_uom', type_='model')
     Pool.register(
-        invoice.SaleLine,
+        sale.SaleLine,
         depends=['sale'],
         module='account_invoice_information_uom', type_='model')
