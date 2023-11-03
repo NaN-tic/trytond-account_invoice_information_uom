@@ -104,13 +104,17 @@ class InformationUomMixin(object):
     @fields.depends('product', 'unit_price', 'type', 'product', 'info_unit', 'unit')
     def on_change_with_info_unit_price(self, name=None):
         Uom = Pool().get('product.uom')
+
         if not self.product or not self.unit or self.unit_price is None:
             return
+
         price = self.unit_price
         if self.unit and self.unit != self.product.default_uom:
             price = Uom.compute_price(self.unit, price,
                 self.product.default_uom)
-        return self.product.template.get_info_unit_price(price, self.info_unit)
+        DIGITS = price_digits[1]
+        return self.product.template.get_info_unit_price(
+            price, self.info_unit).quantize(Decimal(str(10 ** -DIGITS)))
 
     @fields.depends('product', 'info_unit_price', 'unit',
         methods=['on_change_with_amount'])
@@ -118,11 +122,11 @@ class InformationUomMixin(object):
         if not self.product or not self.info_unit_price:
             return
 
-        DIGITS=price_digits[1]
+        DIGITS = price_digits[1]
         self.unit_price = self.product.template.get_unit_price(
-            self.info_unit_price, unit=self.unit)
+            self.info_unit_price, unit=self.unit).quantize(
+            Decimal(str(10 ** -DIGITS)))
 
-        self.unit_price = round(self.unit_price, DIGITS)
         if hasattr(self, 'gross_unit_price'):
             self.gross_unit_price = self.unit_price
             self.discount = Decimal('0.0')
@@ -145,7 +149,6 @@ class InformationUomMixin(object):
     def on_change_unit(self):
         self.info_unit_price = self.on_change_with_info_unit_price()
         self.info_quantity = self.on_change_with_info_quantity()
-
 
     @fields.depends('product', 'unit_price', 'info_unit', 'unit')
     def on_change_unit_price(self):
