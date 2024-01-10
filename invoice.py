@@ -13,8 +13,6 @@ _ROUND = Decimal('.0001')
 STATES = {
     'invisible': ~Bool(Eval('show_info_unit')),
     }
-DEPENDS = ['show_info_unit']
-
 
 
 class InformationUomMixin(object):
@@ -22,7 +20,7 @@ class InformationUomMixin(object):
     show_info_unit = fields.Function(fields.Boolean('Show Information UOM'),
         'on_change_with_show_info_unit')
     info_unit = fields.Function(fields.Many2One('product.uom',
-            'Information UOM', states=STATES, depends=DEPENDS),
+            'Information UOM', states=STATES),
         'on_change_with_info_unit')
     info_quantity = fields.Float('Information Quantity',
         digits='info_unit',
@@ -31,8 +29,7 @@ class InformationUomMixin(object):
                 (Eval('type') != 'line')),
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
-            },
-        depends=['type', 'show_info_unit'])
+            })
     info_unit_price = fields.Numeric('Information Unit Price',
         digits=price_digits,
         states={
@@ -40,8 +37,7 @@ class InformationUomMixin(object):
                 (Eval('type') != 'line')),
             'required': (Bool(Eval('show_info_unit')) &
                 (Eval('type') == 'line')),
-            },
-        depends=['type', 'show_info_unit'])
+            })
 
     @classmethod
     def __setup__(cls):
