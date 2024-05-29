@@ -9,7 +9,7 @@ from trytond.modules.product import price_digits
 
 __all__ = ['Template']
 
-_ZERO = Decimal('0.0')
+_ZERO = Decimal(0)
 _ROUND = Decimal('.0001')
 
 

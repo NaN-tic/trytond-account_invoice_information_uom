@@ -7,7 +7,7 @@ from trytond.pool import PoolMeta, Pool
 from decimal import Decimal
 from trytond.modules.product import price_digits
 
-_ZERO = Decimal('0.0')
+_ZERO = Decimal(0)
 _ROUND = Decimal('.0001')
 
 STATES = {
@@ -109,7 +109,7 @@ class InformationUomMixin(object):
 
         if hasattr(self, 'gross_unit_price'):
             self.gross_unit_price = self.unit_price
-            self.discount = Decimal('0.0')
+            self.discount = Decimal(0)
         self.amount = self.on_change_with_amount()
 
     @fields.depends('product', 'quantity', 'unit')
