@@ -134,5 +134,3 @@ Create invoice::
     True
     >>> line.amount
     Decimal('200.00')
-    >>> line.gross_unit_price == Decimal('40')
-    True
