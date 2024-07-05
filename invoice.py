@@ -50,9 +50,6 @@ class InformationUomMixin(object):
             cls.quantity.on_change.add(value)
             cls.unit.on_change.add(value)
             cls.unit_price.on_change.add(value)
-        if hasattr(cls, 'gross_unit_price'):
-            cls.info_unit_price.on_change_with.add('gross_unit_price')
-            cls.quantity.depends.add('minimum_quantity')
 
     @fields.depends('product')
     def on_change_with_show_info_unit(self, name=None):
@@ -107,9 +104,6 @@ class InformationUomMixin(object):
             self.info_unit_price, unit=self.unit).quantize(
             Decimal(str(10 ** -DIGITS)))
 
-        if hasattr(self, 'gross_unit_price'):
-            self.gross_unit_price = self.unit_price
-            self.discount = Decimal(0)
         self.amount = self.on_change_with_amount()
 
     @fields.depends('product', 'quantity', 'unit')
